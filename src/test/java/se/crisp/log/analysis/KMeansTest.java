@@ -39,28 +39,28 @@ public class KMeansTest {
         assertFalse(anyMatch);
     }
 
-    private Sample[] randomSamples(int numberOfCategories) {
-        Sample[] result = new TestSample[numberOfCategories];
+    private Sample[] randomSamples(int numberOfSamples) {
+        Sample[] result = new TestSample[numberOfSamples];
         for (int n = 0; n < result.length; n++) {
-            result[n] = new TestSample(aRandomString());
+            double payload = ((double) n) / ((double) numberOfSamples);
+            result[n] = new TestSample(payload);
         }
         return result;
     }
 
-    private String aRandomString() {
-        return UUID.randomUUID().toString();
-    }
-
     static class TestSample implements Sample {
-        private final String payload;
+        private final double payload;
 
-        TestSample(String payload) {
+        TestSample(double payload) {
             this.payload = payload;
         }
 
         @Override
         public double distance(Sample reference) {
-            return Math.random();
+            if (reference instanceof TestSample) {
+                return Math.abs(payload - ((TestSample) reference).payload);
+            }
+            return 1;
         }
     }
 
