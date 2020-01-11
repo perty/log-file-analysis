@@ -25,6 +25,11 @@ public class KMeansTest {
         Set<Centroid> centroids = kMeans.getCentroids();
 
         assertEquals(TIGHT_NUMBER_OF_CATEGORIES, centroids.size());
+        assertFalse(aCentroidExistsWithSameValueAsAnother(centroids));
+    }
+
+    private boolean aCentroidExistsWithSameValueAsAnother(Set<Centroid> centroids) {
+        return centroids.stream().anyMatch(c -> centroids.stream().anyMatch(c2 -> c2.equals(c) && c2 != c));
     }
 
     @Test
