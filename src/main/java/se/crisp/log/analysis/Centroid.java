@@ -1,11 +1,14 @@
 package se.crisp.log.analysis;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 
 public class Centroid {
-    private String reference;
+    private Sample reference;
+    private Collection<Object> samples = new ArrayList<>();
 
-    public Centroid(String reference) {
+    public Centroid(Sample reference) {
         this.reference = reference;
     }
 
@@ -20,5 +23,18 @@ public class Centroid {
     @Override
     public int hashCode() {
         return Objects.hash(reference);
+    }
+
+    public Collection<Object> getSamples() {
+        return samples;
+    }
+
+    public double distance(Sample sample) {
+        return sample.distance(this.reference);
+    }
+
+    public Centroid addSample(Sample sample) {
+        this.samples.add(sample);
+        return this;
     }
 }

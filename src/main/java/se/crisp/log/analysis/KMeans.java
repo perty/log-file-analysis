@@ -1,13 +1,15 @@
 package se.crisp.log.analysis;
 
+
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class KMeans {
-    private String[] samples;
+    private Sample[] samples;
     private Set<Centroid> centroids;
 
-    public KMeans(String[] samples, int categories) {
+    public KMeans(Sample[] samples, int categories) {
         this.samples = samples;
         placeCentroids(categories);
     }
@@ -35,5 +37,24 @@ public class KMeans {
                 }
             }
         }
+    }
+
+    public void assignSamplesToNearestCentroid() {
+        for (Sample sample : this.samples) {
+            assignSampleToNearestCentroid(sample);
+        }
+    }
+
+    private void assignSampleToNearestCentroid(Sample sample) {
+        double shortestDistance = 1.0;
+        Optional<Centroid> bestCentroid = Optional.empty();
+        for (Centroid centroid : centroids) {
+            double currentDistance = centroid.distance(sample);
+            if (currentDistance < shortestDistance) {
+                shortestDistance = currentDistance;
+                bestCentroid = Optional.of(centroid);
+            }
+        }
+        bestCentroid.map(c -> c.addSample(sample));
     }
 }
