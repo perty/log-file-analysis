@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import java.util.Set;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -13,12 +12,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class KMeansTest {
 
     private static final int TIGHT_NUMBER_OF_CATEGORIES = 12;
+    private static final int SOME_NUMBER_OF_SAMPLES = TIGHT_NUMBER_OF_CATEGORIES * 10;
 
     @Test
     @DisplayName("When initializing, place centroids at different coordinates.")
     @Timeout(1)
     void givenStringsWhenInitThenPlaceCentroidsDifferently() {
-        Sample[] samples = randomSamples(TIGHT_NUMBER_OF_CATEGORIES);
+        Sample[] samples = linearSamples(TIGHT_NUMBER_OF_CATEGORIES);
 
         KMeans kMeans = new KMeans(samples, TIGHT_NUMBER_OF_CATEGORIES);
 
@@ -28,9 +28,9 @@ public class KMeansTest {
     }
 
     @Test
-    @DisplayName("When iterating, assign samples to nearest centroid")
-    void whenIteratingAssignSamplesToNearestCentroid() {
-        Sample[] samples = randomSamples(TIGHT_NUMBER_OF_CATEGORIES * 10);
+    @DisplayName("Given even spread of samples when assigning samples to nearest centroid then every centroid has at least one sample. ")
+    void givenSpreadSamplesWhenAssigningThenEveryCentroidHasSamples() {
+        Sample[] samples = linearSamples(SOME_NUMBER_OF_SAMPLES);
         KMeans kMeans = new KMeans(samples, TIGHT_NUMBER_OF_CATEGORIES);
 
         kMeans.assignSamplesToNearestCentroid();
@@ -39,7 +39,7 @@ public class KMeansTest {
         assertFalse(anyMatch);
     }
 
-    private Sample[] randomSamples(int numberOfSamples) {
+    private Sample[] linearSamples(int numberOfSamples) {
         Sample[] result = new TestSample[numberOfSamples];
         for (int n = 0; n < result.length; n++) {
             double payload = ((double) n) / ((double) numberOfSamples);
