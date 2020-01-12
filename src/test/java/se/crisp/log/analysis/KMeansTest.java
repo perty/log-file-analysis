@@ -4,6 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,10 +30,6 @@ public class KMeansTest {
         assertFalse(aCentroidExistsWithSameValueAsAnother(centroids));
     }
 
-    private boolean aCentroidExistsWithSameValueAsAnother(Set<Centroid> centroids) {
-        return centroids.stream().anyMatch(c -> centroids.stream().anyMatch(c2 -> c2.equals(c) && c2 != c));
-    }
-
     @Test
     @DisplayName("Given even spread of samples when assigning samples to nearest centroid then every centroid has at least one sample. ")
     void givenSpreadSamplesWhenAssigningThenEveryCentroidHasSamples() {
@@ -40,8 +38,43 @@ public class KMeansTest {
 
         kMeans.assignSamplesToNearestCentroid();
 
-        boolean anyMatch = kMeans.getCentroids().stream().anyMatch(c -> c.getSamples().size() == 0);
+        boolean anyMatch = kMeans.getCentroids().stream().anyMatch(c -> kMeans.getCentroidSamplesSize(c) == 0);
         assertFalse(anyMatch);
+    }
+
+    @Test
+    @DisplayName("Given samples prepared for categories")
+    void givenSamplesPreparedForCategoriesWhenIteratingThenPlaceCentroidsCorrectly() {
+        List<Sample> sampleList = samplesInRange(0.0);
+        sampleList.addAll(samplesInRange(200));
+        sampleList.addAll(samplesInRange(800));
+        sampleList.addAll(samplesInRange(6000));
+
+        Sample[] samples = sampleList.toArray(new Sample[0]);
+
+        KMeans kMeans = new KMeans(samples, 4);
+        kMeans.solve();
+
+        Set<Centroid> centroids = kMeans.getCentroids();
+        centroidsHasCoveredAllSamples(sampleList.size(), centroids);
+        //allCentroidsHave10Samples(centroids);
+    }
+
+    private void centroidsHasCoveredAllSamples(int expectedSum, Set<Centroid> centroids) {
+        int sum = centroids.stream().mapToInt(c -> c.getSamples().size()).sum();
+        assertEquals(expectedSum, sum);
+    }
+
+    private void allCentroidsHave10Samples(Set<Centroid> centroids) {
+        assertFalse(centroids.stream().anyMatch(c -> c.getSamples().size() != 10));
+    }
+
+    private List<Sample> samplesInRange(double startValue) {
+        List<Sample> result = new ArrayList<>();
+        for (int n = 0; n < 10; n++) {
+            result.add(new TestSample(startValue + 0.05 * n));
+        }
+        return result;
     }
 
     private Sample[] linearSamples(int numberOfSamples) {
@@ -51,6 +84,10 @@ public class KMeansTest {
             result[n] = new TestSample(payload);
         }
         return result;
+    }
+
+    private boolean aCentroidExistsWithSameValueAsAnother(Set<Centroid> centroids) {
+        return centroids.stream().anyMatch(c -> centroids.stream().anyMatch(c2 -> c2.equals(c) && c2 != c));
     }
 
     static class TestSample implements Sample {
@@ -66,6 +103,11 @@ public class KMeansTest {
                 return Math.abs(payload - ((TestSample) reference).payload);
             }
             return 1;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%4.3f", payload);
         }
     }
 

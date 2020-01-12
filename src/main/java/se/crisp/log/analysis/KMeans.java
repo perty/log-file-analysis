@@ -2,12 +2,12 @@ package se.crisp.log.analysis;
 
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 public class KMeans {
     private Sample[] samples;
     private Set<Centroid> centroids;
+    private int iterations;
 
     public KMeans(Sample[] samples, int categories) {
         this.samples = samples;
@@ -39,22 +39,51 @@ public class KMeans {
         }
     }
 
-    public void assignSamplesToNearestCentroid() {
+    public void solve() {
+        this.iterations = 0;
+        for (boolean centroidMoved = true; centroidMoved; centroidMoved = centerCentroidsToSamples()) {
+            centroids.forEach(Centroid::clearSamples);
+            assignSamplesToNearestCentroid();
+            this.iterations++;
+        }
+    }
+
+    private boolean centerCentroidsToSamples() {
+        boolean changed = false;
+        for (Centroid centroid : centroids) {
+            if (centroid.centerToSample()) {
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    void assignSamplesToNearestCentroid() {
         for (Sample sample : this.samples) {
             assignSampleToNearestCentroid(sample);
         }
     }
 
+
     private void assignSampleToNearestCentroid(Sample sample) {
+        Centroid bestCentroid = findBestCentroid(sample);
+        bestCentroid.addSample(sample);
+    }
+
+    private Centroid findBestCentroid(Sample sample) {
         double shortestDistance = 1.0;
-        Optional<Centroid> bestCentroid = Optional.empty();
+        Centroid bestCentroid = centroids.iterator().next();
         for (Centroid centroid : centroids) {
             double currentDistance = centroid.distance(sample);
             if (currentDistance < shortestDistance) {
                 shortestDistance = currentDistance;
-                bestCentroid = Optional.of(centroid);
+                bestCentroid = centroid;
             }
         }
-        bestCentroid.map(c -> c.addSample(sample));
+        return bestCentroid;
+    }
+
+    public int getCentroidSamplesSize(Centroid c) {
+        return c.getSamples().size();
     }
 }
